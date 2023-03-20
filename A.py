@@ -38,6 +38,7 @@ def resp():
     return response
 
 print('влад лох')
+print("согласен")
 # def game():
 #     text = request.json.get('request', {}).get('command')
 #     if text == '':
