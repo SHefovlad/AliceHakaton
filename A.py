@@ -37,6 +37,7 @@ def resp():
     }
     return response
 
+print('влад лох')
 # def game():
 #     text = request.json.get('request', {}).get('command')
 #     if text == '':
