@@ -37,7 +37,6 @@ def resp():
     }
     return response
 
-print('влад лох')
 # def game():
 #     text = request.json.get('request', {}).get('command')
 #     if text == '':
@@ -59,6 +58,5 @@ print('влад лох')
 #     }
 #     return response
 
-abc = 123
 
 app.run('0.0.0.0', port=5000, debug=True)
