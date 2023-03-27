@@ -37,9 +37,11 @@ alicePoints = 0
 playerMoney = 1500
 aliceMoney = 1500
 reset = 0
+reset2 = 0
 
 place = ["Начало", "город Тюмень", "Шанс", "город Самара", "Подоходный налог", "Рижская железная дорога", "город Калуга", "Шанс", "город Пермь", "город Томск", "Тюрьма(просто посетители)", "город Уфа", "Шанс", "город Казань", "город Краснодар", "Курская железная дорога", "город Архангельск", "Шанс", "город Челябинск", "город Нижний Новгород", "Бесплатная стоянка", "город Омск", "Шанс", "город Волгоград", "город Белгород", "Казанская железная дорога", "город Ставрополь", "город Ростов-на-Дону", "Шанс", "город Хабаровск", "В тюрьму", "город Екатеринбург", "город Владивосток", "Шанс", "город Санкт-Петербург", "Ленинградская железная дорога", "Шанс", "город Москва", "Шанс", "город Новосибирск"]
 price = [0, 60, 0, 60, 200, 200, 100, 0, 100, 120, 0, 140, 0, 140, 160, 200, 180, 0, 180, 200, 0, 220, 0, 220, 240, 200, 260, 260, 0, 280, 0, 300, 300, 0, 320, 200, 0, 350, 0, 400]
+luck = [-200, -50, 10, 50, 100, 250, 500]
 playerCard = []
 aliceCard = []
 @app.route('/', methods=['POST'])
@@ -85,6 +87,8 @@ def resp():
     global aliceCard
     global response_text
     global reset
+    global reset2
+    global luck
     text = request.json.get('request', {}).get('command')
     end = False
     req = request.json
@@ -163,31 +167,53 @@ def resp():
             response_text = 'Отлично! Начинаем игру, скажите "Брось кубики".'
             g4 = False
         elif req["request"]["original_utterance"].lower() in ["брось кубики", "бросай", "кинь кубики", "кидай", "кинь", "брось"] and g1 == True:
-            if playerPoints >= 40:
-                playerPoints = 0
             g2 = False
             cubs = random.randint(2, 12)
             playerPoints += cubs
-            if price[playerPoints] != 0:
-                response_text = 'Вам выпало ' + str(cubs) + ' Вы попали на клетку ' + place[playerPoints] + ' цена этой клетки ' + str(price[playerPoints]) + ' ваш бюджет: ' + str(playerMoney) + '. Хотите купить эту клетку?'
+            if playerPoints >= 40:
+                playerPoints -= 40
+                playerMoney += 200
+            elif price[playerPoints] != 0 and place[playerPoints] != place[4]:
+                if place[playerPoints] in aliceCard:
+                    response_text = 'Отлично! Вы попали на мою карточку, и вынуждены заплатить мне 50. Продолжаем?'
+                    playerMoney -= 50
+                else:
+                    response_text = 'Вам выпало ' + str(cubs) + ' Вы попали на клетку ' + place[playerPoints] + ' цена этой клетки ' + str(price[playerPoints]) + ' ваш бюджет: ' + str(playerMoney) + '. Хотите купить эту клетку?'
                 g3 = True
             elif place[playerPoints] == place[10]:
-                response_text = 'Вы попали на клетку ' + place[10]
                 g3 = False
+                response_text = 'Вы попали на клетку ' + place[10] + ', едем дальше?'
+                g2 = True
             elif place[playerPoints] == place[20]:
-                response_text = 'вы пришли на бесплатную стоянку'
                 g3 = False
+                response_text = 'вы пришли на бесплатную стоянку, Продолжаем игру?'
+                g2 = True
             elif place[playerPoints] == place[30]:
-                response_text = 'Вы попали на запретную территорию, отправляйтесь в тюрьму'
                 g3 = False
-            elif place[playerPoints] == place[0] or playerPoints >= 40:
-                reset += playerPoints
-                playerPoints = 40
-                playerPoints = reset - playerPoints
-                reset = 0
+                response_text = 'Вы попали на запретную территорию, отправляйтесь в тюрьму и заплатите штраф, разрешите мне пойти?'
+                playerMoney -= 100
+                playerPoints = 10
+                g2 = True
+            elif place[playerPoints] == place[4]:
+                g3 = False
+                response_text = 'Ох, как же вам не повезло, вы вынуждены заплатить подоходный налог, который составить 200, идем вперёд?'
+                playerMoney -= 200
+                g2 = True
+            elif place[playerPoints] == place[0]:
+                g3 = False
+                response_text = 'Вы пришли на начало! Продолжаем игру?'
+                g2 = True
             else:
-                response_text = 'Вы попали на клетку шанс!'
                 g3 = False
+                whyLukc = luck[random.randint(0, 6)]
+                playerMoney += whyLukc
+                if whyLukc < 0:
+                    response_text = 'Сейчас вам не повезло, вы вынуждены отдать ' + str(whyLukc * -1) + ', Продолжаем?'
+                elif whyLukc > 0 and whyLukc <= 100:
+                    response_text = 'Неплохо, вы получаете ' + str(whyLukc) + ', едем дальше?'
+                else:
+                    response_text = 'Вы сказочный везунчик, получите ' + str(whyLukc) + ', идем дальше?'
+                g2 = True
             g1 = False
         elif req["request"]["original_utterance"].lower() in ["да", "давай", "поехали", "так точно", "ок", "окей", "погнали", "вперед", "начинай"] and g3 == True:
             if playerMoney > price[playerPoints]:
@@ -223,7 +249,46 @@ def resp():
                 alicePoints = 0
             cubsA = random.randint(2, 12)
             alicePoints += cubsA
-            response_text = 'Мне выпало ' + str(cubsA) + ' я попала на клетку ' + place[alicePoints] + ' \n скажите "Брось кубики".'
+            if alicePoints >= 40:
+                alicePoints -= 40
+                aliceMoney += 200
+            elif price[alicePoints] != 0 and place[alicePoints] != place[4]:
+                if place[alicePoints] in playerCard:
+                    response_text = 'Как же так! Я зашла в ваши владения и вынуждена отдать вам 50'
+                    aliceMoney -= 50
+                else:
+                    if aliceMoney - 100 > price[alicePoints]:
+                        response_text = 'Мне выпало ' + str(cubsA) + ' я попала на клетку ' + place[alicePoints] + ' её цена' + str(price[alicePoints]) + ' я могу позволить себе купить её. \n Ваш ход, скажите "Брось кубики".'
+                        aliceMoney -= price[alicePoints]
+                        aliceCard.append(place[alicePoints]) 
+                    else:
+                        response_text = 'Эх, к сожалению я не могу купить эту карточку. \n Ваша очередь ходить, скажите "Брось кубики".'
+                g3 = True
+            elif place[alicePoints] == place[10]:
+                response_text = 'Я попала на клетку ' + place[10] + ' \n Ваш черёд ходить, скажите "Брось кубики".'
+                g3 = False
+            elif place[alicePoints] == place[20]:
+                response_text = 'Я пришла на бесплатную стоянку. \n Ваше время пришло, скажите "Брось кубики".'
+                g3 = False
+            elif place[alicePoints] == place[30]:
+                response_text = 'Я попала на запретную территорию и вынуждена заплатить штраф. \n Вы все ближе и ближе к победе, скажите "Брось кубики".'
+                aliceMoney -= 100
+                alicePoints = 10
+                g3 = False
+            elif place[alicePoints] == place[4]:
+                response_text = 'Как же так! Мне нужно заплатить налог, а вам нежно бросить кубики, как всегда скажите "Брось кубики".'
+                aliceMoney -= 200
+            elif place[alicePoints] == place[0]:
+                response_text = 'Вот я и пришла в самое начало'
+            else:
+                whyLukc2 = luck[random.randint(0, 6)]
+                aliceMoney += whyLukc2
+                if whyLukc2 < 0:
+                    response_text = 'Вот невезуха, мне нужно отдать ' + str(whyLukc2 * -1) + ', ваш черёд, скажите "Брось кубики".'
+                elif whyLukc > 0 and whyLukc <= 100:
+                    response_text = 'Отлично, я получаю ' + str(whyLukc2) + ', ваше время пришло, скажите "Брось кубики".'
+                else:
+                    response_text = 'Как же мне везет, мне на баланс поступает ' + str(whyLukc2) + ', ваша очередь ходить, скажите "Брось кубики".'
             g1 = True
             g2 = False
         
