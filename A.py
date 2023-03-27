@@ -32,12 +32,14 @@ g10 = True
 train = False
 rules = True
 startGame = False
+double = False
 playerPoints = 0
 alicePoints = 0
 playerMoney = 1500
 aliceMoney = 1500
 reset = 0
 reset2 = 0
+a = 0; b = 0
 
 place = ["Вперёд", "город Тюмень", "Шанс", "город Самара", "Подоходный налог", "Рижская железная дорога", "город Калуга", "Шанс", "город Пермь", "город Томск", "Тюрьма(просто посетители)",
          "город Уфа", "Шанс", "город Казань", "город Краснодар", "Курская железная дорога", "город Архангельск", "Шанс", "город Челябинск", "город Нижний Новгород", "Бесплатная стоянка",
@@ -52,6 +54,7 @@ aliceCard = []
 @app.route('/', methods=['POST'])
 
 def resp():
+    global a
     global a1
     global a2
     global a3
@@ -60,6 +63,7 @@ def resp():
     global a6
     global a7
 
+    global b
     global b1
     global b2
     global b3
@@ -82,6 +86,7 @@ def resp():
     global g9
     global g10
 
+    global double
     global startGame
     global playerPoints
     global alicePoints
@@ -276,9 +281,15 @@ def resp():
             else:
                 response_text += 'Недостаточно средств!'
         elif req["request"]["original_utterance"].lower() in ["брось кубики", "бросай", "кинь кубики", "кидай", "кинь", "брось"] and g1 == True:
-            g2 = False
-            cubs = random.randint(2, 12)
+            
+            a = random.randint(1, 6)
+            b = random.randint(1, 6)
+            cubs = int(a + b)
+            
+            if a == b:
+                pass #ВОТ ТУТ НАДО СДЕЛАТЬ ЧТОБЫ ИГРОК ВТОРОЙ РАЗ ХОДИЛ
             playerPoints += cubs
+            cubs = str((a, "+", b, "=", cubs))
             #определяем не прошел ли пользователь все поле
             if playerPoints >= 40:
                 playerPoints -= 40
