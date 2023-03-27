@@ -163,6 +163,13 @@ def resp():
         global g8
         global g9
         global g10
+
+        if playerMoney <= 0:
+            response_text = 'О нет! Вы - банкрот, а это значит, что я победила! Повезет в следующий раз!'
+            break
+        elif aliceMoney <= 0:
+            response_text = 'Я - банкрот. Я проиграла, очень жаль. Ну что ж, мне повезет в другой раз!'
+
         if g4 == True:
             response_text = 'Отлично! Начинаем игру, скажите "Брось кубики".'
             g4 = False
@@ -254,7 +261,7 @@ def resp():
                 aliceMoney += 200
             elif price[alicePoints] != 0 and place[alicePoints] != place[4]:
                 if place[alicePoints] in playerCard:
-                    response_text = 'Как же так! Я зашла в ваши владения и вынуждена отдать вам 50'
+                    response_text = 'Как же так! Я попала в ваш город и вынуждена отдать вам ..................'
                     aliceMoney -= 50
                 else:
                     if aliceMoney - 100 > price[alicePoints]:
@@ -284,11 +291,11 @@ def resp():
                 whyLukc2 = luck[random.randint(0, 6)]
                 aliceMoney += whyLukc2
                 if whyLukc2 < 0:
-                    response_text = 'Вот невезуха, мне нужно отдать ' + str(whyLukc2 * -1) + ', ваш черёд, скажите "Брось кубики".'
-                elif whyLukc > 0 and whyLukc <= 100:
-                    response_text = 'Отлично, я получаю ' + str(whyLukc2) + ', ваше время пришло, скажите "Брось кубики".'
+                    response_text = 'Я попала на клетку "Шанс"! \n Вот невезуха, мне нужно отдать ' + str(whyLukc2 * -1) + ', ваш черёд, скажите "Брось кубики".'
+                elif whyLukc2 > 0 and whyLukc2 <= 100:
+                    response_text = 'Я попала на клетку "Шанс"! \n Отлично, я получаю ' + str(whyLukc2) + ', ваше время пришло, скажите "Брось кубики".'
                 else:
-                    response_text = 'Как же мне везет, мне на баланс поступает ' + str(whyLukc2) + ', ваша очередь ходить, скажите "Брось кубики".'
+                    response_text = 'Я попала на клетку "Шанс"! \n Как же мне везет, мне на баланс поступает ' + str(whyLukc2) + ', ваша очередь ходить, скажите "Брось кубики".'
             g1 = True
             g2 = False
         
@@ -310,5 +317,5 @@ def resp():
         'version': request.json["version"]
     }
     return response
-    
+
 app.run('0.0.0.0', port=5000, debug=True)
