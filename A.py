@@ -163,30 +163,28 @@ def resp():
         global g8
         global g9
         global g10
-
-        if playerMoney <= 0:
-            response_text = 'О нет! Вы - банкрот, а это значит, что я победила! Повезет в следующий раз!'
-            break
-        elif aliceMoney <= 0:
-            response_text = 'Я - банкрот. Я проиграла, очень жаль. Ну что ж, мне повезет в другой раз!'
-
         if g4 == True:
             response_text = 'Отлично! Начинаем игру, скажите "Брось кубики".'
             g4 = False
+        #бросок кубиков пользователя
         elif req["request"]["original_utterance"].lower() in ["брось кубики", "бросай", "кинь кубики", "кидай", "кинь", "брось"] and g1 == True:
             g2 = False
             cubs = random.randint(2, 12)
             playerPoints += cubs
+            #определяем не прошел ли пользователь все поле
             if playerPoints >= 40:
                 playerPoints -= 40
                 playerMoney += 200
+            #определяем не попал ли пользователь на карточку алисы
             elif price[playerPoints] != 0 and place[playerPoints] != place[4]:
                 if place[playerPoints] in aliceCard:
                     response_text = 'Отлично! Вы попали на мою карточку, и вынуждены заплатить мне 50. Продолжаем?'
                     playerMoney -= 50
                 else:
+                    #если не попал, то просто говорим инфу о клетке и предлагаем купить
                     response_text = 'Вам выпало ' + str(cubs) + ' Вы попали на клетку ' + place[playerPoints] + ' цена этой клетки ' + str(price[playerPoints]) + ' ваш бюджет: ' + str(playerMoney) + '. Хотите купить эту клетку?'
                 g3 = True
+            #узнаем на какие специальные клетки наступил пользователь(все клетки можно посмотреть в массиве)
             elif place[playerPoints] == place[10]:
                 g3 = False
                 response_text = 'Вы попали на клетку ' + place[10] + ', едем дальше?'
@@ -210,6 +208,7 @@ def resp():
                 g3 = False
                 response_text = 'Вы пришли на начало! Продолжаем игру?'
                 g2 = True
+            #функционал клетки шанс
             else:
                 g3 = False
                 whyLukc = luck[random.randint(0, 6)]
@@ -222,6 +221,7 @@ def resp():
                     response_text = 'Вы сказочный везунчик, получите ' + str(whyLukc) + ', идем дальше?'
                 g2 = True
             g1 = False
+        #согласие поьлзователя о покупке клетки, пока не сделан отказ
         elif req["request"]["original_utterance"].lower() in ["да", "давай", "поехали", "так точно", "ок", "окей", "погнали", "вперед", "начинай"] and g3 == True:
             if playerMoney > price[playerPoints]:
                 response_text = 'Отлично! карта: ' + place[playerPoints] + ' успешно куплена! Продолжаем?'
@@ -238,6 +238,7 @@ def resp():
                     'version': request.json["version"]
                 }
                 return response
+            #если у пользователя нету денег
             else:
                 response_text = 'Извините, у вас недостаточно средств, что бы купить эту карточку. Играем дальше?'
                 g2 = True
@@ -251,6 +252,7 @@ def resp():
                     'version': request.json["version"]
                 }
                 return response
+        #алиса ходит
         elif req["request"]["original_utterance"].lower() in ["да", "давай", "поехали", "так точно", "ок", "окей", "погнали", "вперед", "начинай"] and g2 == True:
             if alicePoints >= 40:
                 alicePoints = 0
@@ -259,11 +261,13 @@ def resp():
             if alicePoints >= 40:
                 alicePoints -= 40
                 aliceMoney += 200
+            #алиса наступила на нашу клетку
             elif price[alicePoints] != 0 and place[alicePoints] != place[4]:
                 if place[alicePoints] in playerCard:
                     response_text = 'Как же так! Я попала в ваш город и вынуждена отдать вам ..................'
                     aliceMoney -= 50
                 else:
+                    #некое подобие ии, здесь алиса решает, покупать ей клетку или нет
                     if aliceMoney - 100 > price[alicePoints]:
                         response_text = 'Мне выпало ' + str(cubsA) + ' я попала на клетку ' + place[alicePoints] + ' её цена' + str(price[alicePoints]) + ' я могу позволить себе купить её. \n Ваш ход, скажите "Брось кубики".'
                         aliceMoney -= price[alicePoints]
@@ -271,6 +275,7 @@ def resp():
                     else:
                         response_text = 'Эх, к сожалению я не могу купить эту карточку. \n Ваша очередь ходить, скажите "Брось кубики".'
                 g3 = True
+            #определяем на какую клетку наступила алиса(все клетки находятся в массиве)
             elif place[alicePoints] == place[10]:
                 response_text = 'Я попала на клетку ' + place[10] + ' \n Ваш черёд ходить, скажите "Брось кубики".'
                 g3 = False
@@ -287,13 +292,14 @@ def resp():
                 aliceMoney -= 200
             elif place[alicePoints] == place[0]:
                 response_text = 'Вот я и пришла в самое начало'
+            #клетка шанс
             else:
                 whyLukc2 = luck[random.randint(0, 6)]
                 aliceMoney += whyLukc2
                 if whyLukc2 < 0:
-                    response_text = 'Я попала на клетку "Шанс"! \n Вот невезуха, мне нужно отдать ' + str(whyLukc2 * -1) + ', ваш черёд, скажите "Брось кубики".'
-                elif whyLukc2 > 0 and whyLukc2 <= 100:
-                    response_text = 'Я попала на клетку "Шанс"! \n Отлично, я получаю ' + str(whyLukc2) + ', ваше время пришло, скажите "Брось кубики".'
+                    response_text = 'Вот невезуха, мне нужно отдать ' + str(whyLukc2 * -1) + ', ваш черёд, скажите "Брось кубики".'
+                elif whyLukc > 0 and whyLukc <= 100:
+                    response_text = 'Отлично, я получаю ' + str(whyLukc2) + ', ваше время пришло, скажите "Брось кубики".'
                 else:
                     response_text = 'Я попала на клетку "Шанс"! \n Как же мне везет, мне на баланс поступает ' + str(whyLukc2) + ', ваша очередь ходить, скажите "Брось кубики".'
             g1 = True
