@@ -13,9 +13,9 @@ a7 = True
 b1 = True
 b2 = True
 b3 = True
-b4 = True
+b4 = False
 b5 = True
-b6 = True
+b6 = False
 b7 = True
 b8 = True
 # сцены для игры
@@ -146,27 +146,34 @@ def resp():
         b6 = False
         b7 = False
         b8 = False
+        
+        global g1
+        global g2
+        global g3
+        global g4
+        global g5
+        global g6
+        global g7
+        global g8
+        global g9
+        global g10
         if g4 == True:
             response_text = 'Отлично! Начинаем игру, скажите "Брось кубики".'
             g4 = False
-        if req["request"]["original_utterance"].lower() in ["брось кубики", "бросай", "кинь кубики", "кидай", "кинь", "брось"] and g1 == True:
+        elif req["request"]["original_utterance"].lower() in ["брось кубики", "бросай", "кинь кубики", "кидай", "кинь", "брось"]:
+            g2 = False
             cubs = random.randint(2, 12)
             playerPoints += cubs
-            g2 = False
-            g1 = False
-            if price[playerPoints] != 0:
+            if g6 == True:
                 response_text = 'Вам выпало ' + str(cubs) + ' Вы попали на клетку ' + place[playerPoints] + ' цена этой клетки ' + str(price[playerPoints]) + ' ваш бюджет: ' + str(playerMoney) + '. Хотите купить эту клетку?'
-                if req["request"]["original_utterance"].lower() in ["да", "давай", "поехали", "так точно", "ок", "окей", "погнали", "вперед", "начинай"] and g3 == True:
-                    if playerMoney > price[playerPoints]:
-                        response_text = 'Отлично! карта: ' + place[playerPoints] + ' успешно куплена!'
-                        playerMoney -= price[playerPoints]
-                        playerCard.append(place[playerPoints])
-                        g2 = True
-                        g3 = False
-                    else:
-                        response_text = 'Извините, у вас недостаточно средств, что бы купить эту карточку'
-                        g2 = True
-                        g3 = False
+                g6 = False
+                print(g6)
+            if req["request"]["original_utterance"].lower() in ["да", "давай", "поехали", "так точно", "ок", "окей", "погнали", "вперед", "начинай"]:
+                if playerMoney > price[playerPoints]:
+                    response_text = 'Отлично! карта: ' + place[playerPoints] + ' успешно куплена!'
+                    playerMoney -= price[playerPoints]
+                    playerCard.append(place[playerPoints])
+                    g2 = True
                     response = {
                         'response': {
                             'text': response_text,
@@ -176,15 +183,27 @@ def resp():
                         'version': request.json["version"]
                     }
                     return response
-                response = {
-                    'response': {
-                        'text': response_text,
-                        'end_session': end
-                    },
-                    'session': request.json["session"],
-                    'version': request.json["version"]
-                }
-                return response
+                else:
+                    response_text = 'Извините, у вас недостаточно средств, что бы купить эту карточку'
+                    g2 = True
+                    response = {
+                        'response': {
+                            'text': response_text,
+                            'end_session': end
+                        },
+                        'session': request.json["session"],
+                        'version': request.json["version"]
+                    }
+                    return response
+            response = {
+                'response': {
+                    'text': response_text,
+                    'end_session': end
+                },
+                'session': request.json["session"],
+                'version': request.json["version"]
+            }
+            return response
         elif req["request"]["original_utterance"].lower() in ["да", "давай", "поехали", "так точно", "ок", "окей", "погнали", "вперед", "начинай"] and g2 == True:
             cubsA = random.randint(2, 12)
             alicePoints += cubsA
